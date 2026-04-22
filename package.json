@@ -11,7 +11,7 @@
     "dev": "concurrently -n web,api,payroll -c cyan,magenta,green \"npm run dev -w apps/web\" \"npm run dev -w apps/api\" \"npm run dev -w apps/payroll\"",
     "dev:web": "npm run dev -w apps/web",
     "dev:api": "npm run dev -w apps/api",
-    "build": "npm run build -w apps/web && npm run build -w apps/api && npm run build -w apps/payroll",
+    "build": "npm run build -w apps/web && npm run build -w apps/api",
     "lint": "npm run lint -w apps/web --if-present && npm run lint -w apps/api --if-present"
   },
   "devDependencies": {
