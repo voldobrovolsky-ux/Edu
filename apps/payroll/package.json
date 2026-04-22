@@ -1,0 +1,52 @@
+{
+  "name": "edumed-payroll",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "prisma generate",
+    "dev": "next dev -p 3002 --webpack",
+    "build": "prisma generate && next build --webpack",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:integration": "vitest run src/**/*.int.test.ts",
+    "test:watch": "vitest",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed:demo": "cross-env PAYROLL_SEED_DEMO=1 tsx prisma/seed.ts",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:generate": "prisma generate",
+    "clean": "node -e \"try { require('fs').rmSync('.next',{recursive:true,force:true}); console.log('removed .next'); } catch (e) { if (e.code !== 'ENOENT') throw e; console.log('no .next to remove'); }\""
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.6.0",
+    "@prisma/client": "^7.6.0",
+    "better-sqlite3": "^12.8.0",
+    "dotenv": "^17.4.0",
+    "next": "16.2.2",
+    "prisma": "^7.6.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/jsdom": "^28.0.1",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.1",
+    "cross-env": "^10.1.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.2",
+    "jsdom": "^29.0.1",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5",
+    "vitest": "^3.2.4"
+  }
+}

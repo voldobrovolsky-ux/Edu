@@ -1,0 +1,436 @@
+// EDUMED Payroll — SQLite schema (domain model)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// Role catalog (no auth yet; used for audit actor and future ACL)
+model UserRole {
+  id          String @id @default(cuid())
+  code        String @unique // director | vice_principal | system_admin
+  displayName String
+  persons     Person[]
+}
+
+model CategoryOfficial {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  sortOrder   Int      @default(0)
+  personsOff  Person[] @relation("PersonOfficialCat")
+}
+
+model CategoryInternal {
+  id          String   @id @default(cuid())
+  code        String   @unique // no_category | first_category | highest_category
+  name        String
+  sortOrder   Int      @default(0)
+  personsInt  Person[] @relation("PersonInternalCat")
+}
+
+model PKLevel {
+  id                String   @id @default(cuid())
+  code              String   @unique // PK0, PK1, ...
+  name              String
+  sortOrder         Int      @default(0)
+  addon             PKAddonRule?
+  personsCurrent    Person[] @relation("PersonCurrentPk")
+  personsFixed      Person[] @relation("PersonFixedPk")
+  personsRecommended Person[] @relation("PersonRecommendedPk")
+  rateRecommendations RateChangeRecommendation[]
+}
+
+model PKAddonRule {
+  id         String  @id @default(cuid())
+  pkLevelId  String  @unique
+  pkLevel    PKLevel @relation(fields: [pkLevelId], references: [id], onDelete: Cascade)
+  hourlyAddonRub Decimal @default(0)
+}
+
+model PRLevel {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  sortOrder Int      @default(0)
+  addon     PRAddonRule?
+  persons   Person[]
+  prHistory PrOpHistory[]
+}
+
+model PRAddonRule {
+  id         String  @id @default(cuid())
+  prLevelId  String  @unique
+  prLevel    PRLevel @relation(fields: [prLevelId], references: [id], onDelete: Cascade)
+  hourlyAddonRub Decimal @default(0)
+}
+
+model OPLevel {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  sortOrder Int      @default(0)
+  addon     OPAddonRule?
+  persons   Person[]
+  opHistory PrOpHistory[]
+}
+
+model OPAddonRule {
+  id         String  @id @default(cuid())
+  opLevelId  String  @unique
+  opLevel    OPLevel @relation(fields: [opLevelId], references: [id], onDelete: Cascade)
+  hourlyAddonRub Decimal @default(0)
+}
+
+/// Configurable branch rules (education + experience → eligibility, category corridor, PK corridor)
+model CandidateBranchRule {
+  id          String @id @default(cuid())
+  code        String @unique
+  name        String
+  priority    Int    @default(0)
+  /// JSON: { education, hasRetraining, schoolExpMin, schoolExpMax, tutoringMin, tutoringOnly, ... }
+  matchJson   String
+  eligibility String // teacher_eligible | trainee_only
+  recommendedInternalCategoryCode String // no_category | first_category | highest_category
+  pkCorridorMinCode String?
+  pkCorridorMaxCode String?
+  commentTemplate String @default("")
+  persons     Person[]
+}
+
+model CandidateProfile {
+  id                       String   @id @default(cuid())
+  personId                 String   @unique
+  person                   Person     @relation(fields: [personId], references: [id], onDelete: Cascade)
+  educationLevel           String
+  hasPedagogicalQualification Boolean @default(false)
+  hasRetraining            Boolean  @default(false)
+  subjectRelevance         String   @default("relevant")
+  schoolExperienceYears    Decimal  @default(0)
+  tutoringExperienceYears  Decimal  @default(0)
+  questionnaireAnswers     String? // JSON backup
+  lastRecommendationJson   String? // cached PK engine output
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  assessments              CandidateAssessment[]
+}
+
+model CandidateAssessment {
+  id                  String @id @default(cuid())
+  candidateProfileId  String
+  candidateProfile    CandidateProfile @relation(fields: [candidateProfileId], references: [id], onDelete: Cascade)
+  label               String
+  score               Decimal?
+  notes               String?
+  assessedAt          DateTime @default(now())
+}
+
+model EmployeeProfile {
+  id                     String   @id @default(cuid())
+  personId               String   @unique
+  person                 Person     @relation(fields: [personId], references: [id], onDelete: Cascade)
+  /// Guaranteed monthly fix (contract), counted in fix+MROT logic for labor_contract
+  guaranteedMonthlyFixRub Decimal  @default(0)
+  hireDate               DateTime?
+  positionTitle          String?
+}
+
+model EmploymentContract {
+  id          String   @id @default(cuid())
+  personId    String
+  person      Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  title       String
+  startDate   DateTime
+  endDate     DateTime?
+  notes       String?
+}
+
+model Person {
+  id                    String   @id @default(cuid())
+  /// ID пользователя из основного EDUMED (`apps/api/data/users.json` → StoredUser.id). Без дублирования «левых» лиц.
+  systemUserId          String?  @unique
+  systemUsername        String?
+  fullName              String
+  email                 String?
+  phone                 String?
+  status                String   // candidate | trainee | active | archived
+  employmentType        String   // labor_contract | no_labor_contract
+  workFormat            String   // staff | part_time | trainee
+  officialCategoryId    String?
+  internalCategoryId    String?
+  currentPKLevelId      String?
+  fixedPKLevelId        String?
+  recommendedPKLevelId  String?
+  prLevelId             String?
+  opLevelId             String?
+  branchRuleId          String?
+  baseHourRateOverride  Decimal?
+  isVisibleInAccounting Boolean  @default(true)
+  /// Часы в таблице «Учебные часы» / замены — только если true (обычно active-педагоги)
+  canReceiveHourEntries Boolean  @default(false)
+  notes                 String?
+
+  userRoleId            String?
+
+  officialCategory      CategoryOfficial?   @relation("PersonOfficialCat", fields: [officialCategoryId], references: [id])
+  internalCategory      CategoryInternal?   @relation("PersonInternalCat", fields: [internalCategoryId], references: [id])
+  currentPK             PKLevel?            @relation("PersonCurrentPk", fields: [currentPKLevelId], references: [id])
+  fixedPK               PKLevel?            @relation("PersonFixedPk", fields: [fixedPKLevelId], references: [id])
+  recommendedPK         PKLevel?            @relation("PersonRecommendedPk", fields: [recommendedPKLevelId], references: [id])
+  prLevel               PRLevel?            @relation(fields: [prLevelId], references: [id])
+  opLevel               OPLevel?            @relation(fields: [opLevelId], references: [id])
+  branchRule            CandidateBranchRule? @relation(fields: [branchRuleId], references: [id])
+  userRole              UserRole?           @relation(fields: [userRoleId], references: [id])
+
+  candidateProfile      CandidateProfile?
+  employeeProfile       EmployeeProfile?
+  contracts             EmploymentContract[]
+  hourEntries           HourEntry[]
+  substitutionsAsSub    SubstitutionEntry[] @relation("SubAsSubstitute")
+  substitutionsReplaced SubstitutionEntry[] @relation("SubReplaced")
+  payrollLines          PayrollLine[]
+  adjustments           Adjustment[]
+  prOpHistory           PrOpHistory[]
+  rateRecommendations   RateChangeRecommendation[]
+  rateApprovals         RateChangeApproval[] @relation("ApproverPerson")
+  auditLogs             AuditLog[] @relation("AuditActor")
+  orderDrafts           OrderDraft[]
+}
+
+model PrOpHistory {
+  id            String   @id @default(cuid())
+  personId      String
+  person        Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  prLevelId     String?
+  prLevel       PRLevel? @relation(fields: [prLevelId], references: [id])
+  opLevelId     String?
+  opLevel       OPLevel? @relation(fields: [opLevelId], references: [id])
+  effectiveFrom DateTime @default(now())
+  reason        String?
+  createdAt     DateTime @default(now())
+}
+
+/// Справочник типов событий учёта часов (урок проведён, отмена, замена …)
+model HourEventType {
+  id                 String   @id @default(cuid())
+  code               String   @unique
+  name               String
+  /// Вес для оплаты: 0 / 0.5 / 1 (часы × ставка × factor)
+  payFactor          Decimal  @default(1)
+  countsTowardMrot   Boolean  @default(false)
+  countsTowardLoad   Boolean  @default(false)
+  sortOrder          Int      @default(0)
+  hourEntries        HourEntry[]
+  substitutionEntries SubstitutionEntry[]
+}
+
+model HourEntry {
+  id              String        @id @default(cuid())
+  personId        String
+  person          Person        @relation(fields: [personId], references: [id], onDelete: Cascade)
+  year            Int
+  month           Int // 1-12
+  lessonHours     Decimal       @default(0)
+  hourEventTypeId String
+  hourEventType   HourEventType @relation(fields: [hourEventTypeId], references: [id])
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([personId, year, month])
+}
+
+model SubstitutionEntry {
+  id                   String        @id @default(cuid())
+  substitutingPersonId String
+  substitutingPerson   Person        @relation("SubAsSubstitute", fields: [substitutingPersonId], references: [id], onDelete: Cascade)
+  replacedPersonId     String?
+  replacedPerson       Person?       @relation("SubReplaced", fields: [replacedPersonId], references: [id])
+  year                 Int
+  month                Int
+  hours                Decimal
+  hourEventTypeId      String
+  hourEventType        HourEventType @relation(fields: [hourEventTypeId], references: [id])
+  notes                String?
+  createdAt            DateTime      @default(now())
+
+  @@index([substitutingPersonId, year, month])
+}
+
+model PayrollPeriod {
+  id        String   @id @default(cuid())
+  year      Int
+  month     Int
+  label     String
+  startDate DateTime
+  endDate   DateTime
+  runs      PayrollRun[]
+  fotPlan   FotPeriodPlan?
+  @@unique([year, month])
+}
+
+/// Плановый ФОТ на календарный период (один на year+month, не привязан к конкретному прогону).
+model FotPeriodPlan {
+  id              String        @id @default(cuid())
+  periodId        String        @unique
+  period          PayrollPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  plannedFotTotal Decimal
+  note            String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+/// Link hour entries to period (optional denorm); we match by year/month in engine
+model PayrollRun {
+  id          String   @id @default(cuid())
+  periodId    String
+  period      PayrollPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  status      String   // draft | calculated | finalized
+  /// JSON снимок настроек на момент расчёта (база, PK/PR/OP, МРОТ, типы субсидий)
+  settingsSnapshot String?
+  calcError   String?
+  calculatedAt DateTime?
+  finalizedAt DateTime?
+  notes       String?
+  lines       PayrollLine[]
+  adjustments Adjustment[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+}
+
+model PayrollLine {
+  id              String   @id @default(cuid())
+  payrollRunId    String
+  payrollRun      PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  personId        String
+  person          Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  lineType        String   // FIX_BASE | MROT_TOPUP | MROT_EVALUATION | ...
+  sortOrder       Int      @default(0)
+  title           String
+  quantity        Decimal  @default(0)
+  rate            Decimal  @default(0)
+  amount          Decimal
+  direction       String   // plus | minus
+  formulaText     String
+  sourceReference String   @default("")
+  countsTowardMrot Boolean  @default(false)
+  flexOrFix       String   // fix | flex
+  explanationJson String?  // JSON: { why: string, details: ... }
+  createdAt       DateTime @default(now())
+
+  @@index([payrollRunId, personId, sortOrder])
+}
+
+/// Subsidy / payment type catalog (тип выплаты: фикс/гибкая, МРОТ, источник)
+model Subsidy {
+  id               String @id @default(cuid())
+  code             String @unique
+  name             String
+  /// Обязательный фиксированный платёж (окладная часть) vs гибкая выплата
+  isFixComponent   Boolean @default(false)
+  countsTowardMrot Boolean @default(false)
+  isHourly         Boolean @default(false)
+  isManual         Boolean @default(true)
+  /// school_budget | regional_subsidy | grant | other
+  paymentSource    String @default("school_budget")
+  adjustments      Adjustment[]
+}
+
+model Adjustment {
+  id            String   @id @default(cuid())
+  personId      String
+  person        Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  subsidyTypeId String?
+  subsidyType   Subsidy? @relation(fields: [subsidyTypeId], references: [id])
+  payrollRunId  String?
+  payrollRun    PayrollRun? @relation(fields: [payrollRunId], references: [id], onDelete: SetNull)
+  year          Int
+  month         Int
+  title         String
+  amount        Decimal
+  direction     String   // plus | minus
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@index([personId, year, month])
+}
+
+model SystemSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model MrotSetting {
+  id                 String   @id @default(cuid())
+  federalMrotMonthly Decimal
+  regionalOverrideMonthly Decimal?
+  effectiveDate      DateTime
+  notes              String?
+  createdAt          DateTime @default(now())
+}
+
+/// AI / analyst recommendation — administration confirms separately
+model RateChangeRecommendation {
+  id                  String   @id @default(cuid())
+  personId            String
+  person              Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  proposedPKLevelId   String?
+  proposedPK          PKLevel? @relation(fields: [proposedPKLevelId], references: [id])
+  analystLabel      String   @default("ai_analyst")
+  reasonText        String
+  status            String   @default("pending") // pending | approved | rejected
+  createdAt         DateTime @default(now())
+  approvals         RateChangeApproval[]
+  orderDrafts       OrderDraft[]
+}
+
+model RateChangeApproval {
+  id                 String   @id @default(cuid())
+  recommendationId   String
+  recommendation     RateChangeRecommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  approverPersonId   String?
+  approverPerson     Person?  @relation("ApproverPerson", fields: [approverPersonId], references: [id])
+  approverRole       String
+  decision           String   // approved | rejected
+  decidedAt          DateTime @default(now())
+  comment            String?
+}
+
+model OrderDraft {
+  id                 String   @id @default(cuid())
+  personId           String?
+  person             Person?  @relation(fields: [personId], references: [id])
+  recommendationId   String?
+  recommendation     RateChangeRecommendation? @relation(fields: [recommendationId], references: [id])
+  type               String   @default("generic") // PK_CHANGE | generic | PAYROLL_FINALIZATION | ...
+  title              String
+  bodyText           String
+  payload            String?  // JSON при необходимости
+  impactPreviewJson  String?
+  status             String   @default("draft") // draft | approved | archived
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @default(now()) @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  entityType  String
+  entityId    String
+  action      String
+  beforeJson  String?
+  afterJson   String?
+  actorRole   String?
+  actorPersonId String?
+  actorPerson Person?  @relation("AuditActor", fields: [actorPersonId], references: [id])
+  reason      String?
+  outcome     String   @default("success") // success | failure
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

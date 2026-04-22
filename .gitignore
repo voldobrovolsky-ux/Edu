@@ -1,0 +1,9 @@
+node_modules/
+.next/
+dist/
+.env
+apps/payroll/prisma/dev.db
+apps/payroll/prisma/*.db-journal
+apps/api/data/*.json
+/uploads/
+/public/uploads/

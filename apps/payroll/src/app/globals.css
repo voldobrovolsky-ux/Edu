@@ -1,0 +1,244 @@
+@import "tailwindcss";
+
+/* EDUMED Payroll — premium accounting / fintech (light-first) */
+:root {
+  /* Surfaces */
+  --app-bg: #f5f4f8;
+  --card: #ffffff;
+  --elevated: #faf9fc;
+
+  /* Text */
+  --foreground: #1c1b1f;
+  --muted: #5f5d66;
+  --subtle: #8a8794;
+
+  /* Borders — soft gray with slight violet temperature */
+  --border: #e6e4ee;
+  --border-strong: #d4d1de;
+
+  /* Accent — muted violet / lavender */
+  --accent: #6b5b95;
+  --accent-hover: #5a4d82;
+  --accent-soft: #ede9f5;
+  --accent-muted: #c4b8dc;
+  --accent-foreground: #2a2438;
+
+  /* Semantic */
+  --success: #2f6f4e;
+  --success-soft: #e8f3ec;
+  --warning: #9a6b2d;
+  --warning-soft: #faf4e8;
+  --danger: #a53b3b;
+  --danger-soft: #fceeee;
+  --info: #5c6789;
+  --info-soft: #eef0f7;
+
+  /* Shadows — soft, diffuse */
+  --shadow-card: 0 1px 2px rgba(28, 27, 31, 0.04), 0 4px 20px rgba(42, 36, 56, 0.06);
+  --shadow-nav: 0 1px 0 rgba(28, 27, 31, 0.04);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-app: var(--app-bg);
+  --color-card: var(--card);
+  --color-elevated: var(--elevated);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted);
+  --color-subtle-foreground: var(--subtle);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-muted: var(--accent-muted);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --shadow-card: var(--shadow-card);
+  --shadow-nav: var(--shadow-nav);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-app text-foreground font-sans antialiased;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  ::selection {
+    @apply bg-accent-soft text-accent-foreground;
+  }
+}
+
+@layer components {
+  /* Reference card pattern for accounting surfaces */
+  .edu-card {
+    @apply rounded-xl border border-border bg-card text-foreground shadow-card;
+  }
+
+  .edu-card-quiet {
+    @apply rounded-xl border border-border bg-elevated text-foreground;
+  }
+
+  .edu-page-title {
+    @apply text-2xl font-semibold tracking-tight text-foreground;
+  }
+
+  .edu-section-title {
+    @apply text-sm font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+
+  .edu-table-shell {
+    @apply overflow-x-auto rounded-xl border border-border bg-card shadow-card;
+  }
+
+  .edu-kpi-value {
+    @apply text-2xl font-semibold tabular-nums tracking-tight text-foreground;
+  }
+
+  .edu-kpi-label {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* Forms & actions — operational hit areas, not cramped admin */
+  .edu-input,
+  .edu-select,
+  .edu-textarea {
+    @apply w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm outline-none transition placeholder:text-subtle-foreground focus:border-accent focus:ring-2 focus:ring-accent/20;
+  }
+
+  .edu-btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-45;
+  }
+
+  .edu-btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-border-strong bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-45;
+  }
+
+  .edu-btn-muted {
+    @apply inline-flex items-center justify-center rounded-lg border border-border bg-transparent px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:border-accent/40 hover:text-foreground;
+  }
+
+  .edu-btn-danger {
+    @apply inline-flex items-center justify-center rounded-lg border border-danger/25 bg-danger-soft px-3 py-1.5 text-sm font-medium text-danger transition hover:border-danger/40 hover:bg-danger-soft/80 disabled:cursor-not-allowed disabled:opacity-45;
+  }
+
+  .edu-link {
+    @apply font-medium text-accent hover:text-accent-hover hover:underline;
+  }
+
+  .edu-table {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .edu-table thead tr {
+    @apply border-b border-border bg-elevated text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+
+  .edu-table th,
+  .edu-table td {
+    @apply border-b border-border/70 px-3 py-2 align-top;
+  }
+
+  .edu-table tbody tr:hover {
+    @apply bg-elevated/60;
+  }
+
+  /* Payroll run: quiet data tables — horizontal hairlines only, no spreadsheet grid */
+  .payroll-table-quiet {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .payroll-table-quiet thead th {
+    @apply border-0 border-b border-border/60 bg-transparent py-2.5 pl-0 pr-3 text-left align-bottom text-[11px] font-medium uppercase tracking-wider text-muted-foreground first:pl-1 last:pr-1;
+  }
+
+  .payroll-table-quiet tbody td {
+    @apply border-0 border-b border-border/40 py-3 align-middle first:pl-1 last:pr-1;
+  }
+
+  .payroll-table-quiet tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .payroll-table-quiet tbody tr {
+    @apply transition-colors;
+  }
+
+  .payroll-table-quiet tbody tr:hover {
+    @apply bg-accent-soft/30;
+  }
+
+  .edu-btn-ghost {
+    @apply inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-elevated hover:text-foreground;
+  }
+
+  /* Field labels — stronger hierarchy than raw <label> */
+  .edu-field-label {
+    @apply block text-xs font-medium uppercase tracking-wide text-muted-foreground;
+  }
+
+  .edu-field-hint {
+    @apply mt-1 text-xs text-subtle-foreground;
+  }
+
+  /* Grouped form block (comfortable density) */
+  .edu-form-section {
+    @apply space-y-4 rounded-2xl border border-border/60 bg-card p-5 shadow-sm sm:p-6;
+  }
+
+  /* Native checkbox — productized */
+  .edu-checkbox {
+    @apply h-4 w-4 shrink-0 rounded border-border text-accent focus:ring-2 focus:ring-accent/25;
+  }
+
+  /* Dense data tables — use with payroll-table-quiet: className="payroll-table-quiet edu-table-dense" */
+  .edu-table-dense {
+    @apply text-[13px] leading-snug;
+  }
+
+  /* Page rhythm: comfortable vertical spacing for forms and headers */
+  .edu-page {
+    @apply space-y-8;
+  }
+
+  /* Action slab — filters / toolbar row */
+  .edu-action-slab {
+    @apply flex flex-wrap items-end gap-3 rounded-xl border border-border/50 bg-elevated/80 p-4;
+  }
+
+  /* Status pill for lists — base duplicated per variant (Tailwind v4: no @apply of sibling component classes) */
+  .edu-pill-neutral {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-elevated text-muted-foreground ring-1 ring-border;
+  }
+
+  .edu-pill-success {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-success-soft text-success;
+  }
+
+  .edu-pill-warning {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-warning-soft text-warning;
+  }
+
+  .edu-pill-accent {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-accent-soft text-accent-foreground;
+  }
+}

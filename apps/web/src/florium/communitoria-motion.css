@@ -1,0 +1,233 @@
+/* Communitoria / Flörium — лёгкие анимации (палитра EDUMED) */
+
+@keyframes communitoria-shimmer {
+  0% {
+    background-position: -120% 0;
+  }
+  100% {
+    background-position: 120% 0;
+  }
+}
+
+@keyframes communitoria-row-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes communitoria-list-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes communitoria-msg-out {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes communitoria-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes communitoria-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-3px);
+  }
+  40% {
+    transform: translateX(3px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes communitoria-count-pop {
+  0% {
+    transform: scaleY(0.85);
+  }
+  50% {
+    transform: scaleY(1.08);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes communitoria-pill-in {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes communitoria-pill-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+@keyframes communitoria-idle-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.communitoria-skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgb(226 232 240) 0%,
+    rgb(241 245 249) 45%,
+    rgb(226 232 240) 90%
+  );
+  background-size: 200% 100%;
+  animation: communitoria-shimmer 1.4s ease-in-out infinite;
+}
+
+.communitoria-chat-list-mount {
+  animation: communitoria-list-fade 0.28s ease-out both;
+}
+
+.communitoria-chat-row-enter {
+  animation: communitoria-row-in 0.32s var(--ed-transition-base, 220ms cubic-bezier(0.2, 0.8, 0.2, 1)) both;
+}
+
+.communitoria-msg-anim-out {
+  animation: communitoria-msg-out 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.communitoria-msg-anim-in {
+  animation: communitoria-msg-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Исходящий: «всплывает» от зоны ввода и встаёт в ленту */
+@keyframes communitoria-bubble-launch-out {
+  0% {
+    opacity: 0.75;
+    transform: translateY(52px) scale(0.88);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Входящий: мягче */
+@keyframes communitoria-bubble-in-soft {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.communitoria-bubble-launch-out {
+  animation: communitoria-bubble-launch-out 0.42s cubic-bezier(0.22, 0.82, 0.28, 1) both;
+}
+
+.communitoria-bubble-in-soft {
+  animation: communitoria-bubble-in-soft 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.communitoria-bubble-flash-copy {
+  animation: communitoria-bubble-flash 0.55s ease-out;
+}
+
+@keyframes communitoria-bubble-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 8px rgba(14, 165, 233, 0);
+  }
+}
+
+.communitoria-bubble-shake {
+  animation: communitoria-shake 0.45s ease-in-out;
+}
+
+.communitoria-reaction-count-pop {
+  animation: communitoria-count-pop 0.28s ease-out;
+  display: inline-block;
+}
+
+.communitoria-pill-grow {
+  animation: communitoria-pill-in 0.22s ease-out both;
+}
+
+.communitoria-pill-shrink {
+  animation: communitoria-pill-out 0.2s ease-in both;
+}
+
+.communitoria-idle-center {
+  animation: communitoria-idle-fade-in 0.45s ease-out both;
+}
+
+.communitoria-status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.communitoria-status-icon-enter {
+  opacity: 0;
+  transform: scale(0.85);
+}
+
+.communitoria-status-icon-visible {
+  opacity: 1;
+  transform: scale(1);
+}

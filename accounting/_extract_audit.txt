@@ -1,0 +1,419 @@
+﻿A. Executive Summary
+Общий уровень соответствия: низкий относительно целевой модели (вложенная «Бухгалтерия», раздельные сценарии родитель/ученик, жёсткое ACL, полнота экранов, отсутствие критичного хардкода). Текущая реализация — рабочий MVP: JSON-файловые сторы, payroll preview/периоды, compensation engine с UI у админов, тяжёлая «Бухгалтерия» одной страницей.
+Архитектура: нет реляционной БД и миграций; данные — JSON в apps/api/data/*.json. Роутинг фронта без role-guard на уровне PrivateRoute (только авторизация). Часть API читает конфигурацию компенсаций без ограничения роли — критичный риск утечки.
+UX / навигация: сайдбар плоский; «Настройка расчёта» отдельным верхнеуровневым пунктом для ролей с compensation_engine; нет вложенности «Бухгалтерия → …», нет waterfall-раскрытия подменю, нет отдельного маршрута «Центральный Банк», нет «Мои финансы» у родителя/ученика.
+Роли: backend payroll/analytics в целом сужает превью учителя до себя; sysadmin в коде приравнен к руководству по payroll/engine (против требования «не автоматически неограниченно»). Родитель/ученик не получают финансовых разделов в меню, но могут попасть на утечечные GET API, если узнают эндпоинты.
+Хардкод: маппинги веток кандидатов, лимиты очков, fallback engine и seed JSON — частично в коде/файлах, без полной админской редактируемости «всего» через UI.
+Готовность к инкрементальному исправлению: высокая для UI/роутинга; средняя для ACL (точечные правки роутов); для «всё редактируемо из UI + аудит + версии» потребуется опорная модель данных (не только JSON-файлы).
+B. Current State Map
+Область
+Факт
+Сайдбар
+Sidebar.tsx: плоский список sections из computeOfficeSections + ссылка «Трекер задач» + Florium + «Персонализация». Вложенной «Бухгалтерии» нет.
+Конфиг секций
+apps/api/src/config/office.ts: staff — main, analytics, accounting, document_archive, journal, timetable, methospace, chats; клиенты — main, diary, chats; дополнительно для director/head_teacher/sysadmin: users_admin, compensation_engine.
+Подписи
+apps/web/src/lib/office.ts: accounting → «Бухгалтерия», compensation_engine → «Настройка расчёта».
+Маршруты
+router.tsx: section/accounting → AccountingPage; section/compensation_engine → CompensationSettingsPage; central_bank, parent/student finance отсутствуют.
+Анимации
+SectionTransitionOutlet + UiTransitionSwap — переход между страницами, не waterfall раскрытия подпунктов в сайдбаре.
+Бухгалтерия (UI)
+AccountingPage.tsx — одна крупная страница: период, KPI, реестр, корректировки (админ), модалки, блок «В разработке».
+Настройки расчёта
+CompensationSettingsPage.tsx — вкладки (ветки, полки, ПК, коэффициенты, формулы, пресеты, тест, аудит). Редактирование для director/head_teacher/sysadmin.
+Аналитика
+Отдельная секция analytics (AnalyticsPage), не вложена под «Бухгалтерию».
+Родитель / ученик
+В officeConfig.clientSections нет accounting/finance; маршрутов «Мои финансы» нет.
+Backend
+Основные файлы: payroll.ts, compensation.ts, compensationEngine.ts, analytics.ts (compensation); расчёты: services/teacherAnalytics.ts, compensationResolve.ts, compensationEngineResolve.ts.
+Хранилище
+JSON: compensation*.json, compensationEngine.json, payroll*.json и т.д. Миграций БД нет.
+
+C. Mismatch Register
+ID
+Category
+Severity
+Layer
+Files / routes
+Current
+Expected
+Fix (кратко)
+Migration
+Risk
+MM-001
+Navigation
+major
+frontend
+Sidebar.tsx, office.ts
+Плоский список; «Настройка расчёта» отдельным пунктом
+«Бухгалтерия» с вложенными: Настройки расчетов, Аналитика, Центральный Банк
+Nested nav + переименование подписи
+frontend only
+Неверная ИА
+MM-002
+Navigation
+major
+frontend
+Нет маршрута «Центральный Банк»
+Отсутствует
+Заглушка + route + пункт меню
+frontend only
+Неполный контур
+MM-003
+UX animation
+minor
+frontend
+Sidebar
+Нет раскрытия подменю
+Waterfall-анимация подпунктов
+frontend only
+Несоответствие UX-требованию
+MM-004
+Naming
+minor
+ux
+SECTION_LABELS.compensation_engine
+«Настройка расчёта»
+«Настройки расчетов»
+Локализация/лейбл
+frontend only
+Несогласованность
+MM-005
+Analytics placement
+major
+routing
+section/analytics
+Аналитика отдельной секцией
+«Аналитика» под «Бухгалтерия»
+Перенос/дублирование маршрутов
+cross-layer
+Дублирование смысла
+MM-006
+Screen architecture
+major
+ux
+AccountingPage.tsx
+Одна перегруженная страница
+Отдельные панели для ставок, видов выплат, отчётов, истории
+Декомпозиция routes/components
+frontend + API
+Тяжело поддерживать
+MM-007
+Actions
+major
+ux
+AccountingPage
+Ключевые действия disabled/«Скоро»
+Рабочие действия
+Реализация + API
+cross-layer
+Нет реальных операций
+MM-008
+Reports
+major
+ux
+Export/roadmap
+Экспорт disabled; отчёты в roadmap
+Рабочий отчётный контур
+Отчётный pipeline
+cross-layer
+Нет управленческой отчётности
+MM-009
+Parent product
+critical
+cross-layer
+—
+Нет «Мои финансы», нет flow
+Отдельный родительский финкабинет
+Новые routes, API, модели
+db + API + FE
+Отсутствие ключевого сценария
+MM-010
+Student product
+critical
+cross-layer
+—
+Нет «Мои финансы» ученика
+Школьный счёт ученика
+Новые routes/API
+cross-layer
+Отсутствие ключевого сценария
+MM-011
+Teacher UX
+major
+ux
+AccountingPage, office
+Учитель видит пункт «Бухгалтерия»
+Учитель видит «свои начисления», а не админскую бухгалтерию
+Переименование/разделение
+frontend + ACL
+Путаница ролей
+MM-012
+Profile
+major
+ux
+ProfilePage.tsx
+Нет блока зарплаты
+В профиле — свои зарплатные данные
+Виджет «Мои начисления»
+frontend + API
+Нет единой точки входа
+MM-013
+Sysadmin
+major
+acl
+payroll/engine routes
+Sysadmin = полный payroll admin
+Ограниченный доступ по матрице
+Пересборка RBAC
+backend + FE
+Избыточные права
+MM-014
+ACL
+critical
+backend
+compensation.ts GET
+Любой auth-пользователь читает ветки/полки/ПК
+Доступ только ролям бухгалтерии/админов
+Ограничение по ролям
+backend only
+Утечка финансовых ставок
+MM-015
+ACL
+critical
+backend
+compensationEngine.ts GET /state
+Любой auth читает state engine
+Только админы бухгалтерии
+Ограничить GET
+backend only
+Утечка формул и пресетов
+MM-016
+ACL
+major
+routing
+PrivateRoute.tsx
+Проверка только токена
+Route guards по ролям
+RoleRoute + server-side проверки
+cross-layer
+Возможный обход по URL
+MM-017
+Data editability
+major
+cross-layer
+JSON + engine UI
+Часть редактируется; часть в коде/JSON
+Любые критичные значения конфигурируемы
+Вынести правила в конфиг+UI
+db migration optional
+Зависимость от релизов
+MM-018
+Hardcode
+major
+backend
+compensationResolve.ts
+Маппинг веток, PR/OP в коде
+Таблицы правил/конфиг
+Вынести в данные
+backend + DB
+Недостоверные начисления при изменении политики
+MM-019
+Versioning
+major
+database
+JSON stores
+Версии только в engine; нет общей модели
+Версии/даты действия для всех параметров
+Расширить модель
+db migration
+Споры по периодам
+MM-020
+Audit
+minor
+backend
+audit engine
+Аудит только engine
+Единый аудит по всем сущностям
+Единый audit сервис
+cross-layer
+Неполный след
+MM-021
+Duplicate analytics
+minor
+ux
+AnalyticsPage + AccountingPage
+Размазанная аналитика
+Единая ИА
+Консолидация
+frontend
+Дублирование интерфейсов
+
+D. Role Visibility Matrix
+Role
+Sidebar top-level (факт)
+Nested (цель)
+Allowed screens (факт)
+Forbidden (цель)
+Data scope (факт)
+Notes
+Director
+Staff + users_admin, compensation_engine
+Бухгалтерия с подпунктами
+Все staff секции, бухгалтерия, настройки расчёта, аналитика
+—
+Полный payroll admin, engine, analytics
+В целом ожидаемо
+Head teacher
+То же
+То же
+То же
+—
+Как director
+Нет тонкой дифференциации
+Sysadmin
+То же
+То же
+То же
+Не должен автоматически иметь полный финансовый контур
+Полный payroll admin + engine
+Нужно сужение прав
+Teacher
+Staff: accounting, analytics, …
+Должен видеть только свои начисления
+AccountingPage (с фильтрацией на себя), AnalyticsPage (ставки/зарплаты)
+Глобальные настройки
+Backend даёт только свои данные
+Навигационно выглядит как «админская бухгалтерия»
+Parent
+main, diary, chats
+Мои финансы
+Нет финансовых экранов
+Вся внутренняя бухгалтерия
+—
+Нет продукта, возможна утечка по API
+Student
+main, diary, chats
+Мои финансы
+Нет финансовых экранов
+Вся внутренняя бухгалтерия
+—
+Нет продукта, возможна утечка по API
+
+E. Navigation Audit
+Текущая структура: плоский список секций, каждая ведёт на /section/{id}.
+Целевая: родитель «Бухгалтерия» с дочерними: «Настройки расчетов», «Аналитика», «Центральный Банк».
+Подменю: отсутствуют; используются только переходы на страницы.
+Дубли: смысл «аналитики зарплат» раздроблен между AnalyticsPage и AccountingPage.
+Role-aware rendering: меню корректно не показывает accounting/engine родителям/ученикам; но API-уровень не повторяет те же ограничения.
+Direct URL bypass: возможно открыть маршруты/получить данные, полагаясь только на auth, без проверки роли.
+F. Editable Data & Hardcode Audit
+Entity / value
+Exists
+Source of truth
+UI editable
+Hardcoded
+Versioned
+History
+Notes
+Ветки/полки/ПК/правила
+Да
+JSON + engine sync
+Через CompensationSettingsPage
+Частично
+Да (пресеты)
+Да (engine audit)
+GET открыт всем
+Compensation engine presets
+Да
+compensationEngine.json
+Да (для админов)
+Есть fallback в коде
+Да
+Да
+State GET открыт всем
+Payroll periods/snapshots
+Да
+JSON stores
+Через UI бухгалтерии
+—
+Периоды / снапшоты
+История утверждений
+Работает как MVP
+Маппинг веток кандидатов
+Да
+Код
+Нет
+Да
+Нет
+Нет
+Нужно вынести в конфиг
+Ограничения PR/OP
+Да
+Код
+Нет
+Да
+Нет
+Нет
+Тоже в конфиг/правила
+Данные ставок/диапазонов
+Да
+JSON/engine
+Частично
+—
+В пресетах
+Частично
+В целом конфигурируемы, но зависят от engine
+
+Critical hardcodes:
+Маппинг веток кандидатов.
+Ограничения PR/OP.
+Fallback-состояние engine.
+Инициализирующие JSON.
+G. Screen Architecture Audit
+Internal
+Бухгалтерия (root) — есть, но без children в меню.
+Настройки расчетов — отдельный верхний пункт (compensation_engine), а не дочерний.
+Аналитика — отдельный верхний пункт, не вложена под бухгалтерию.
+Центральный Банк — отсутствует.
+Экраны по сущностям — в основном реализованы в виде вкладок и блоков, но завязаны на одну-две тяжёлые страницы.
+Parent / Student
+Routes и UI «Мои финансы» отсутствуют.
+Нет моделей данных под родительские платежи / ученический счёт в отдельном виде.
+Нет базовых скелет-страниц, даже без логики.
+H. Remediation Roadmap
+Sidebar restructuring — вложить compensation_engine, аналитику и stub «Центральный Банк» под accounting, переименовать лейблы.
+Route tree and role guards — ввести role-based guards и согласовать их с office-конфигом.
+Manual-edit accounting data model — вынести правила из кода и сделать единые конфигурируемые сущности.
+Accounting screens decomposition — разбить большую страницу на подмодули и дочерние маршруты.
+Reports / statistics / analytics actions — включить хотя бы минимально полезные отчёты и статистику.
+Parent finance separation — отдельный API и UI «Мои финансы» для родителей.
+Student finance separation — отдельный API и UI «Мои финансы» для учеников.
+Central Bank placeholder — добавить маршрут и заглушку.
+Audit / versioning — выровнять аудит и версионирование по всем финансовым сущностям.
+QA — регресс по ACL, прямым ссылкам, видимости данных, навигации.
+I. Safe Implementation Strategy
+Начать с усиления ACL и закрытия критичных GET (без изменения UI).
+Затем перестроить сайдбар и роутинг (nested accounting).
+После этого заняться разнесением продуктов для родителей/учеников.
+Отложить перенос hardcode в конфиг, пока не стабилизирован техстандарт и не добавлен сам DOCX в репозиторий.
+Каждый этап сопровождать документированием в отдельном CHANGELOG/разделе.
+J. First Approved Execution Backlog (15 задач)
+Добавить в репозиторий техстандарт бухгалтерии (DOCX) и зафиксировать версию в README/CHANGELOG.
+Закрыть GET /api/compensation/* для всех, кроме ролей бухгалтерии/руководства.
+Закрыть GET /api/compensation-engine/state для всех, кроме разрешённых админских ролей.
+Ввести role-aware маршрутизацию (RoleRoute) для section/accounting и section/compensation_engine.
+Спроектировать и реализовать nested routes под accounting/*.
+Перенести/скрыть compensation_engine из корня меню, показав его только как подпункт «Бухгалтерии».
+Создать маршрут и страницу-заглушку «Центральный Банк» под бухгалтерией.
+Добавить waterfall/collapsible-поведение для группы «Бухгалтерия» в сайдбаре.
+Развести права sysadmin и director/head_teacher в части payroll/compensation-engine.
+Вынести для учителя пункт «Мои начисления» отдельно от административной «Бухгалтерии».
+Добавить блок зарплаты в профиль учителя, используя существующий payroll API.
+Вынести маппинг веток и ограничение PR/OP из кода в конфигурацию и обеспечить UI-редактирование.
+Создать скелет «Мои финансы» (parent) с отдельным роутингом и минимальными мок-данными.
+Создать скелет «Мои финансы» (student) как отдельный сценарий, не завязанный на parent UI.
+Реализовать минимальный рабочий экспорт отчёта или убрать маркировку «Скоро» на кнопках, если экспорт всё ещё в долгосрочном бэклоге.
+
