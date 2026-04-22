@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { prisma } from "@/lib/db";
 import { orderDraftStatusLabel, summarizeOrderDraft } from "@/lib/orders/order-draft-summary";
 import Link from "next/link";
