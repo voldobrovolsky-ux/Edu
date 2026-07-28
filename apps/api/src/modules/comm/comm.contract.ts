@@ -1,5 +1,5 @@
 /**
- * Communitoria (comm/) — контракты графа контактов и инвариантов безопасности миноров.
+ * Мессенджер (comm/) — контракты графа контактов и инвариантов безопасности миноров.
  * Несущие принципы: полная аудируемость (нет исчезающих сообщений / секретных чатов), контур comm/
  * изолирован от Документохранилища. События каналов/сообщений/звонков — в следующих чанках; здесь —
  * фундамент безопасности (граф + инварианты), проверяемый e2e ПЕРВЫМ.
@@ -44,7 +44,7 @@ export type AnnouncementAudience = (typeof ANNOUNCEMENT_AUDIENCES)[number];
 export const ACK_STATES = ['sent', 'delivered', 'read', 'acknowledged'] as const;
 export type AckState = (typeof ACK_STATES)[number];
 
-/** События Communitoria (namespace edustore.comm.*, конвенция kernel edustore.<домен>.<событие>). */
+/** События Мессенджер (namespace edustore.comm.*, конвенция kernel edustore.<домен>.<событие>). */
 export const COMM_EVENTS = {
   messageSent: 'edustore.comm.message.sent',
   announcementPosted: 'edustore.comm.announcement.posted',

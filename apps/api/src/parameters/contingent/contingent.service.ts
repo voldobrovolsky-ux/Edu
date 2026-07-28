@@ -6,7 +6,7 @@ import { CONTINGENT_EVENTS, type StudentEnrolledV1 } from './contract';
 
 /**
  * Контингентный параметр (демо-срез): зачисление ученика порождает факт-событие
- * `contingent.student.enrolled.v1` — корень каскада через УМК/Communitoria/Питание.
+ * `contingent.student.enrolled.v1` — корень каскада через УМК/Мессенджер/Питание.
  */
 @Injectable()
 export class ContingentService {

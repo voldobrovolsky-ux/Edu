@@ -4,7 +4,7 @@ import { PrismaClient, SkuKind } from '@prisma/client';
 export const DEFAULT_SKUS: { key: string; kind: SkuKind; label: string }[] = [
   { key: 'lms.core', kind: SkuKind.module, label: 'Ядро LMS — кабинет учителя' },
   { key: 'param.nutrition', kind: SkuKind.module, label: 'Параметр: Питание' },
-  { key: 'param.communitoria', kind: SkuKind.module, label: 'Параметр: Communitoria' },
+  { key: 'param.messenger', kind: SkuKind.module, label: 'Параметр: Мессенджер' },
 ];
 
 export async function syncSkus(prisma: PrismaClient): Promise<void> {

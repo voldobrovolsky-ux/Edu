@@ -68,11 +68,11 @@ export const TENANT_COLUMN: Record<string, string> = {
   Material: 'workspaceId',
   TextbookTopic: 'workspaceId',
   TextbookCard: 'workspaceId',
-  // Communitoria (граф контактов + инварианты миноров)
+  // Мессенджер (граф контактов + инварианты миноров)
   Parenthood: 'workspaceId',
   Channel: 'workspaceId',
   ChannelParticipant: 'workspaceId',
-  // Communitoria (каналы/сообщения/объявления)
+  // Мессенджер (каналы/сообщения/объявления)
   Message: 'workspaceId',
   MessageReaction: 'workspaceId',
   Ack: 'workspaceId',

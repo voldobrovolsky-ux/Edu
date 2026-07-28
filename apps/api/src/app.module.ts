@@ -60,7 +60,7 @@ import { ComplianceModule } from './parameters/compliance/compliance.module';
     StandardsModule, // Phase 1: контракты завуча/методиста (AssessmentPolicy/TimingProfile/OrgStandards/FgosHours)
     CabinetsModule, // Phase 1: кабинеты (методики/курсы/курирование + надзор завуча)
     DocModule, // Phase 1: документохранилище (файлы/версии/теги/статус) на S3-абстракции
-    CommModule, // Phase 1: Communitoria — граф контактов + инварианты безопасности миноров
+    CommModule, // Phase 1: Мессенджер — граф контактов + инварианты безопасности миноров
     PilotModule, // ВРЕМЕННЫЙ: пилотный auth (AUTH_MODE=pilot-qr) — owner-QR-онбординг для запуска
     // параметры
     ContingentModule,

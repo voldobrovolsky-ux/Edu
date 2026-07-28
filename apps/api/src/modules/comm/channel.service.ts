@@ -4,7 +4,7 @@ import { TenantContext } from '../../common/tenant/tenant-context';
 import { COMM_ERRORS, type ParticipantRole, type Principal } from './comm.contract';
 
 /**
- * Каналы Communitoria + ИНВАРИАНТ схемы: канал с участником-минором (minorPresent) НЕ принимает
+ * Каналы Мессенджер + ИНВАРИАНТ схемы: канал с участником-минором (minorPresent) НЕ принимает
  * участника role=external. Enforced на уровне СОЗДАНИЯ/ДОБАВЛЕНИЯ участника (единственный писатель —
  * этот сервис), ДО записи строки — не проверка в UI и не позже. Двусторонне: и external-в-минор-канал,
  * и минор-в-external-канал отклоняются. Сообщения/звонки — следующие чанки.

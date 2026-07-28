@@ -24,7 +24,7 @@ docker-compose.yml
 | Документы | `apps/api/src/modules/doc`, `modules/materials`, `apps/web/src/sections/materials` |
 | Методическое пространство | `apps/api/src/modules/standards`, `modules/planning`, `modules/cabinets` |
 | Аналитика | `apps/api/src/modules/reports`, `engine/analytics.service` |
-| Коммуникации (Communitoria) | `apps/api/src/modules/comm` |
+| Коммуникации (Мессенджер) | `apps/api/src/modules/comm` |
 | Персонализация | `apps/web/src/app/screens/Personalize.tsx` |
 | Профиль пользователя | `apps/web/src/cabinets/CurrentUser.tsx` |
 | Аутентификация / роли | `apps/api/src/common/auth`, `common/authz`, `modules/pilot` (пилотный QR-вход) |

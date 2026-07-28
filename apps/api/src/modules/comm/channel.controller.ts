@@ -15,7 +15,7 @@ interface EditBody { body: string }
 interface ReactionBody { emoji: string }
 interface AnnouncementBody { body: string; audience: string; ackDeadline?: string }
 
-// Communitoria каналы/сообщения/объявления — /api/v1/comm/*. Гейты: comm.channel.manage (создание),
+// Мессенджер каналы/сообщения/объявления — /api/v1/comm/*. Гейты: comm.channel.manage (создание),
 // comm.announcement.post (объявления, завуч); добавление участника — resource-level модератор канала.
 @Controller('v1/comm')
 export class ChannelController {

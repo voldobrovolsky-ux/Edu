@@ -49,9 +49,9 @@ export const PERMISSIONS: PermissionDef[] = [
   { code: 'schedule.build', section: 'schedule', screen: 'builder', action: 'build', label: 'Сборка расписания (завуч)' },
   { code: 'materials.lesson.generate', section: 'materials', screen: 'lesson', action: 'generate', label: 'Генерация материалов' },
   { code: 'materials.textbook.upload', section: 'materials', screen: 'textbook', action: 'upload', label: 'Загрузка учебника (учитель)' },
-  // Communitoria (каналы/объявления). admin/owner — tenancy-роли Флёра, в токен не приходят (§7.4),
+  // Мессенджер (каналы/объявления). admin/owner — tenancy-роли Флёра, в токен не приходят (§7.4),
   // поэтому «завуч/админ» на объявлениях = доменная роль завуча; админ действует через панель Флёра.
-  { code: 'comm.channel.manage', section: 'comm', screen: 'channels', action: 'manage', label: 'Создание каналов Communitoria' },
+  { code: 'comm.channel.manage', section: 'comm', screen: 'channels', action: 'manage', label: 'Создание каналов мессенджера' },
   { code: 'comm.announcement.post', section: 'comm', screen: 'announcements', action: 'post', label: 'Публикация объявлений (завуч)' },
   { code: 'notes.teacher.edit', section: 'notes', screen: 'teacher', action: 'edit', label: 'Заметки учителя' },
   { code: 'schedule.view', section: 'schedule', screen: 'schedule', action: 'view', label: 'Расписание' },

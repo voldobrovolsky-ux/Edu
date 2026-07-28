@@ -3,7 +3,7 @@ import type { Request } from 'express';
 import type { SessionUser } from '../../common/auth/flor.service';
 import { GraphService } from './graph.service';
 
-// Communitoria — /api/v1/comm/*. Чанк 1: read-only граф контактов (структурный, из RBAC+parenthood).
+// Мессенджер — /api/v1/comm/*. Чанк 1: read-only граф контактов (структурный, из RBAC+parenthood).
 // Каналы/сообщения/звонки — следующие чанки.
 @Controller('v1/comm')
 export class CommController {

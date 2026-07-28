@@ -3,7 +3,7 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { COMM_ERRORS, type Principal } from './comm.contract';
 
 /**
- * Граф контактов Communitoria — СТРУКТУРНЫЙ, read-only: выводится из RBAC (членства) + рёбер
+ * Граф контактов Мессенджер — СТРУКТУРНЫЙ, read-only: выводится из RBAC (членства) + рёбер
  * `parenthood`. Никакого «поиска и DM кому угодно». Здесь же — инварианты безопасности миноров.
  *
  * Ключевой принцип: разрешение приватного контакта взрослый↔минор проверяется по НАЛИЧИЮ ребра

@@ -8,7 +8,7 @@ import { ParenthoodSync } from './parenthood.sync';
 import { CommController } from './comm.controller';
 import { ChannelController } from './channel.controller';
 
-// Communitoria (Phase 1). Чанк 1: граф контактов + инварианты безопасности миноров. Чанк 2: каналы/
+// Мессенджер (Phase 1). Чанк 1: граф контактов + инварианты безопасности миноров. Чанк 2: каналы/
 // сообщения/объявления поверх того же инварианта (add-participant не дублируется). Контур comm/
 // изолирован от Документохранилища. ParenthoodSync — зеркало директории Флёруса. Звонки — чанк 3.
 @Module({

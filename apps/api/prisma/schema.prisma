@@ -453,7 +453,7 @@ model ProcessedEvent {
 
 // ═══════════════════════════ ПАРАМЕТРЫ (демо-каскад «зачисление ученика») ═══════════════════════════
 model ChannelMembership {
-  // Communitoria
+  // Мессенджер
   id          String   @id @default(cuid())
   workspaceId String // тенант = школа (Workspace)
   classId     String
@@ -1097,7 +1097,7 @@ model TextbookCard {
   @@index([ktpTopicId])
 }
 
-// ─── Communitoria (comm/) — граф контактов + инварианты безопасности миноров ───
+// ─── Мессенджер (comm/) — граф контактов + инварианты безопасности миноров ───
 // Контур comm/ изолирован от Документохранилища по умолчанию (вложения НЕ через doc-модуль).
 
 // Ребро родительства: взрослый ↔ КОНКРЕТНЫЙ ребёнок. Источник истины — директория Флёруса;
@@ -1117,7 +1117,7 @@ model Parenthood {
   @@index([workspaceId, parentUserId])
 }
 
-// Канал Communitoria. Инвариант: minorPresent=true (есть участник-минор) ⇒ участник role=external
+// Канал Мессенджер. Инвариант: minorPresent=true (есть участник-минор) ⇒ участник role=external
 // не принимается (constraint на уровне добавления участника, ниже в ChannelService). Полная
 // аудируемость: нет исчезающих сообщений / секретных чатов (сообщения — следующий чанк).
 model Channel {

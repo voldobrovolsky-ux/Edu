@@ -5,7 +5,7 @@ import { Inbox } from '../../common/outbox/inbox.service';
 import { continuation, type DomainEvent } from '../../common/events/domain-event';
 import { CONTINGENT_EVENTS, type StudentEnrolledV1 } from '../contingent/contract';
 
-/** Communitoria: ученик зачислен → добавить в канал класса (+ продолжить каскад). */
+/** Мессенджер: ученик зачислен → добавить в канал класса (+ продолжить каскад). */
 @Injectable()
 export class CommsHandlers implements OnModuleInit {
   private readonly log = new Logger('param:comms');
@@ -29,7 +29,7 @@ export class CommsHandlers implements OnModuleInit {
       // следующее звено каскада (depth+1)
       await this.outbox.enqueue(
         tx,
-        continuation(e, 'communitoria.member.added.v1', { classId: p.classId, studentId: p.studentId }, 'comms'),
+        continuation(e, 'messenger.member.added.v1', { classId: p.classId, studentId: p.studentId }, 'comms'),
       );
       this.log.log(`+ ${p.displayName} → канал класса ${p.classId}`);
     });
