@@ -1,0 +1,5 @@
+# Caddy — авто-HTTPS (Let's Encrypt) для EduStore. Терминирует TLS, проксирует на web.
+edustore-flor-group.ru {
+	encode gzip
+	reverse_proxy web:80
+}

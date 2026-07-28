@@ -1,0 +1,59 @@
+name: CI
+on:
+  push:
+    branches: [main, EDUMED, "claude/**"]
+  pull_request:
+    branches: [main, EDUMED]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install
+        run: npm install
+      - name: Prisma generate
+        run: npx prisma generate --schema apps/api/prisma/schema.prisma
+      - name: Build API
+        run: npm --workspace apps/api run build
+      - name: Build Web
+        run: npm --workspace apps/web run build
+
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: edustore
+          POSTGRES_PASSWORD: edustore
+          POSTGRES_DB: edustore
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U edustore"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://edustore:edustore@localhost:5432/edustore?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install
+        run: npm install
+      - name: Prisma generate + migrate
+        run: |
+          npx prisma generate --schema apps/api/prisma/schema.prisma
+          npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
+      - name: Интеграционные проверки (пилот, тенант)
+        run: |
+          npm --workspace apps/api run pilot:check
+          npm --workspace apps/api run tenant:check

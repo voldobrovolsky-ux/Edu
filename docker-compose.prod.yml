@@ -1,0 +1,83 @@
+# EduStore — продакшн-стек на одном VPS.
+#
+# Фронт-дверь — на выбор:
+#   А) Внешний (хостовый) nginx/любой reverse-proxy на 80/443 (рекомендуется, если nginx
+#      уже стоит): проксирует на опубликованные ЛОКАЛЬНО порты — web (SPA+/api) 127.0.0.1:8080
+#      и/или api 127.0.0.1:3000. Caddy НЕ запускаем. См. deploy/nginx/edustore.conf и docs/DEPLOY.md.
+#        docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#   Б) Встроенный Caddy (443, авто-SSL) — для чистого VPS без своего nginx:
+#        docker compose -f docker-compose.prod.yml --env-file .env.prod --profile caddy up -d --build
+#
+# Порты api/web публикуются ТОЛЬКО на 127.0.0.1 — наружу их отдаёт reverse-proxy (TLS на нём).
+# Первый деплой — засеять демо-структуру: docker compose -f docker-compose.prod.yml exec api npm run seed
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    # Только на loopback: хостовый nginx достучится по localhost:3000, наружу порт закрыт.
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      PORT: "3000"
+      WEB_ORIGIN: https://edustore-flor-group.ru
+      AUTH_MODE: ${AUTH_MODE:-production}
+      # Флёрус (ADR-0005) — заполнить в .env.prod
+      FLOR_ISSUER: ${FLOR_ISSUER}
+      FLOR_CLIENT_ID: ${FLOR_CLIENT_ID}
+      FLOR_CLIENT_SECRET: ${FLOR_CLIENT_SECRET}
+      FLOR_REDIRECT_URI: https://edustore-flor-group.ru/api/auth/flor/callback
+      FLOR_POST_LOGOUT_REDIRECT_URI: https://edustore-flor-group.ru
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    # SPA + внутреннее проксирование /api → api:3000 (см. apps/web/nginx.conf).
+    # Один upstream для хостового nginx: проксируйте ВСЁ на 127.0.0.1:8080.
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      - api
+
+  # Встроенный reverse-proxy с авто-SSL. Только по запросу: --profile caddy
+  # (иначе конфликт за порты 80/443 с хостовым nginx).
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["caddy"]
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
